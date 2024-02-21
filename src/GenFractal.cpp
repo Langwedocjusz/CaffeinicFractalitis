@@ -2,7 +2,13 @@
 
 #include "Timer.h"
 
+#define USE_MULTITHREADING
 #define USE_SIMD
+
+#ifdef USE_MULTITHREADING
+#include <thread>
+#include <cstdint>
+#endif
 
 #ifdef USE_SIMD
 #include <array>
@@ -13,24 +19,57 @@ static void Mandelbrot(float* mem_address, __m128  x, __m128 y);
 static float Mandelbrot(float c_re, float c_im);
 #endif
 
+static void IterateImage(size_t start, size_t end, std::vector<float>& data, size_t width, size_t height);
+
 void GenFractal::GenerateFractal(std::vector<float>& data, size_t width, size_t height)
 {
 	Timer we("Generating the fractal");
 
+#ifdef USE_MULTITHREADING
+	const size_t num_threads = std::thread::hardware_concurrency();
+	const size_t total = data.size();
+
+	std::vector<std::thread> threads;
+
+	auto callable = [&](size_t start, size_t end) {
+		IterateImage(start, end, data, width, height);
+	};
+
+	for (size_t i = 0; i < num_threads; i++)
+	{
+		//Start and end are currenlty assumed to both be
+		//divisible by 4 in the simd version
+		const size_t start = i * total / num_threads;
+		const size_t end = (i+1) * total / num_threads;
+
+		threads.push_back(std::thread(callable, start, end));
+	}
+
+	for (auto& thread : threads) {
+		thread.join();
+	}
+#else
+	IterateImage(0, data.size(), data, width, height);
+#endif
+}
+
+
+static void IterateImage(size_t start, size_t end, std::vector<float>& data, size_t width, size_t height)
+{
 #ifdef USE_SIMD
-	for (size_t i = 0; i < data.size(); i += 4)
+	for (size_t i = start; i < end; i += 4)
 	{
 		auto getX = [width, height](size_t id)
-		{
-			const auto idx = id % width;
-			return 4.0f * static_cast<float>(idx) / static_cast<float>(width) - 2.0f;
-		};
+			{
+				const auto idx = id % width;
+				return 4.0f * static_cast<float>(idx) / static_cast<float>(width) - 2.0f;
+			};
 
 		auto getY = [width, height](size_t id)
-		{
-			const auto idy = height - id / width;
-			return 4.0f * static_cast<float>(idy) / static_cast<float>(height) - 2.0f;
-		};
+			{
+				const auto idy = height - id / width;
+				return 4.0f * static_cast<float>(idy) / static_cast<float>(height) - 2.0f;
+			};
 
 		__m128  x, y;
 
@@ -42,15 +81,15 @@ void GenFractal::GenerateFractal(std::vector<float>& data, size_t width, size_t 
 		Mandelbrot(mem_address, x, y);
 	}
 #else
-	for (size_t i = 0; i < data.size(); i++)
+	for (size_t i = start; i < end; i++)
 	{
 		const auto idx = i % width;
 		const auto idy = height - i / width;
 
-		const float x = 4.0f * static_cast<float>(idx) / static_cast<float>(width)  - 2.0f;
+		const float x = 4.0f * static_cast<float>(idx) / static_cast<float>(width) - 2.0f;
 		const float y = 4.0f * static_cast<float>(idy) / static_cast<float>(height) - 2.0f;
 
-		data[i] = Mandelbrot(x,y);
+		data[i] = Mandelbrot(x, y);
 	}
 #endif
 }
@@ -74,7 +113,10 @@ static void Mandelbrot(float* mem_address, __m128  x, __m128 y)
 
 	condition = _mm_setzero_ps();
 	iter = _mm_setzero_ps();
-	final_len2 = _mm_setzero_ps();
+	//Since smooth iteration count is computed using the modulus of last position,
+	//we need additional variable for this, as re and im will all be iterated
+	//until all four bailout conditions are met
+	final_len2 = _mm_setzero_ps(); 
 
 	const __m128 one = _mm_set1_ps(1.0f);
 	const __m128 two = _mm_set1_ps(2.0f);
@@ -93,6 +135,7 @@ static void Mandelbrot(float* mem_address, __m128  x, __m128 y)
 		i2 = _mm_mul_ps(im, im);
 
 		len2 = _mm_add_ps(r2, i2);
+		//Copy len2's of only those pixels that are yet to bail out
 		final_len2 = _mm_blendv_ps(len2, final_len2, condition);
 			
 		condition = _mm_or_ps(condition, _mm_cmpgt_ps(len2, bail2));
