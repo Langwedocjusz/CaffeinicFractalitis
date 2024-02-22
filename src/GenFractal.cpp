@@ -19,6 +19,8 @@ static void Mandelbrot(float* mem_address, __m128  x, __m128 y);
 static float Mandelbrot(float c_re, float c_im);
 #endif
 
+#include <cmath>
+
 static void IterateImage(size_t start, size_t end, std::vector<float>& data, size_t width, size_t height);
 
 void GenFractal::GenerateFractal(std::vector<float>& data, size_t width, size_t height)
