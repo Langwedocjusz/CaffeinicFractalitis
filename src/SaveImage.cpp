@@ -10,6 +10,12 @@
 #include <cmath>
 #include <array>
 
+#define USE_MULTITHREADING
+
+#ifdef USE_MULTITHREADING
+#include <thread>
+#endif
+
 struct Pixel {
 	uint8_t r;
 	uint8_t g;
@@ -22,12 +28,56 @@ struct Pixelf {
 	float b;
 };
 
+static Pixel ColorImage(float value);
+
+void SaveImage::ColorAndSave(std::vector<float>& data, 
+                             const std::string& filename,
+                             size_t width, size_t height)
+{
+	//Timer we("Coloring and saving the image");
+
+	std::vector<Pixel> image;
+	image.resize(width * height);
+
+#ifdef USE_MULTITHREADING
+	const size_t num_threads = std::thread::hardware_concurrency();
+	const size_t total = image.size();
+
+	std::vector<std::thread> threads;
+
+	auto callable = [&](size_t start, size_t end) {
+    	for (size_t i = start; i < end; i++)
+    	{
+    		image[i] = ColorImage(data[i]);
+    	}
+	};
+
+	for (size_t i = 0; i < num_threads; i++)
+	{
+		const size_t start = i   * total / num_threads;
+		const size_t end = (i+1) * total / num_threads;
+
+		threads.push_back(std::thread(callable, start, end));
+	}
+
+	for (auto& thread : threads)
+		thread.join();
+#else
+	for (size_t i = 0; i < image.size(); i++)\
+	{
+		image[i] = ColorImage(data[i]);
+	}
+#endif
+
+	const size_t channel_nr = 3;
+
+	stbi_write_png(filename.c_str(), width, height, channel_nr, &image[0], width * sizeof(Pixel));
+}
+
 static Pixelf hsv_to_rgb(float h, float s, float v);
 
-void SaveImage::ColorAndSave(std::vector<float>& data, size_t width, size_t height)
+static Pixel ColorImage(float value)
 {
-	Timer we("Coloring and saving the image");
-
 	auto greyscale = [](float val) -> Pixel
 	{
 		auto normalize = [](float x)
@@ -62,19 +112,9 @@ void SaveImage::ColorAndSave(std::vector<float>& data, size_t width, size_t heig
 		return Pixel{ r, g, b };
 	};
 
-	std::vector<Pixel> image;
-	image.resize(width * height);
-
-	for (size_t i = 0; i < image.size(); i++)\
-	{
-		image[i] = colored(data[i]);
-		//image[i] = greyscale(data[i]);
-	}
-
-	const size_t channel_nr = 3;
-
-	stbi_write_png("stbpng.png", width, height, channel_nr, &image[0], width * sizeof(Pixel));
+    return colored(value);
 }
+
 
 static Pixelf hsv_to_rgb(float h, float s, float v)
 {
