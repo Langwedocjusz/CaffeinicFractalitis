@@ -34,7 +34,7 @@ void SaveImage::ColorAndSave(std::vector<float>& data,
                              const std::string& filename,
                              size_t width, size_t height)
 {
-	//Timer we("Coloring and saving the image");
+	Timer we("Coloring and saving the image");
 
 	std::vector<Pixel> image;
 	image.resize(width * height);
@@ -80,13 +80,7 @@ static Pixel ColorImage(float value)
 {
 	auto greyscale = [](float val) -> Pixel
 	{
-		auto normalize = [](float x)
-		{
-			const float lorentz = 1.0f - 1.0f / (1.0f + x * x);
-			return lorentz * lorentz * lorentz;
-		};
-
-		const uint8_t v = static_cast<uint8_t>(255.0f * normalize(val));
+		const uint8_t v = static_cast<uint8_t>(255.0f * val);
 
 		return Pixel{ v, v, v };
 	};
@@ -112,7 +106,8 @@ static Pixel ColorImage(float value)
 		return Pixel{ r, g, b };
 	};
 
-    return colored(value);
+    //return colored(value);
+    return greyscale(value);
 }
 
 

@@ -3,6 +3,8 @@
 #include "Timer.h"
 
 #include <vector>
+#include <xmmintrin.h>
+#include <smmintrin.h>
 
 #define USE_MULTITHREADING
 
@@ -47,13 +49,17 @@ namespace GenData {
         		return extents_y * idy * inv_height + p.min_y;
         	};
 
-            for (size_t i = start; i < end; i++)
+            for (size_t i = start; i < end; i += 4)
             {
-                const float x = getX(i); 
-                const float y = getY(i);
+                __m128  x, y;
                 
-                data[i] = f(x, y);
-            }
+                x = _mm_set_ps(getX(i + 3), getX(i + 2), getX(i + 1), getX(i));
+                y = _mm_set_ps(getY(i + 3), getY(i + 2), getY(i + 1), getY(i));
+                
+                float* mem_address = &data[i];
+                
+                f(mem_address, x, y);
+               }
         };
 
 #ifdef USE_MULTITHREADING

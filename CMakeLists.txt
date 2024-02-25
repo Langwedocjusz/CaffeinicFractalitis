@@ -27,7 +27,7 @@ file(GLOB_RECURSE sources src/*.cpp)
 target_sources(${PROJECT_NAME} PRIVATE ${headers} ${sources} ${imgui_impl})
 
 #Specify include directories
-target_include_directories(${PROJECT_NAME} PUBLIC src)
+target_include_directories(${PROJECT_NAME} PUBLIC src src/ComputeFractal)
 
 #SSE compile flags
 if(MSVC)

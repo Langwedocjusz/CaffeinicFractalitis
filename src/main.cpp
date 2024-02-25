@@ -1,4 +1,5 @@
-#include "GenData.h"
+#include "ComputeFractalSSE.h"
+#include "GenDataSSE.h"
 #include "SaveImage.h"
 
 #include <cmath>
@@ -14,7 +15,7 @@ int main(){
 
     for (auto i=0; i<50; i++)
     {
-        const float center_x = -0.745f;
+        const float center_x = -0.74f;
         const float center_y = 0.1f;
 
         const float min_x = center_x - half_ext;
@@ -25,14 +26,14 @@ int main(){
         GenData::Params params{
             min_x, max_x,
             min_y, max_y,
-            width, height
+            width, height,
         };
 
         const std::string filename = std::to_string(i) + ".png";
 
-	    GenData::GenerateFractal(data, params);
+	    GenData::GenerateFractal(data, ComputeFractal::MandelbrotLight, params);
 	    SaveImage::ColorAndSave(data, filename, width, height);
 
-        half_ext *= 0.8f;
+        half_ext *= 0.9f;
     }
 }
