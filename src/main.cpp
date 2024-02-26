@@ -1,6 +1,8 @@
+#include "Timer.h"
+
 #include "ComputeFractalSSE.h"
 #include "GenDataSSE.h"
-#include "SaveImage.h"
+#include "Image.h"
 
 #include <cmath>
 
@@ -31,8 +33,15 @@ int main(){
 
         const std::string filename = std::to_string(i) + ".png";
 
-	    GenData::GenerateFractal(data, ComputeFractal::MandelbrotLight, params);
-	    SaveImage::ColorAndSave(data, filename, width, height);
+        {
+            Timer we("Coloring and saving the image");
+            GenData::GenerateFractal(data, ComputeFractal::MandelbrotLight, params);
+        }
+
+        {
+            Timer we("Generating the fractal");
+            Image::ColorAndSave(data, Image::NormedGrayscale, filename, width, height);
+        }
 
         half_ext *= 0.9f;
     }

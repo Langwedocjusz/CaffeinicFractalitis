@@ -8,6 +8,7 @@ namespace ComputeFractal{
     //to reach bailout radius of four positions at target address
     void Mandelbrot(float* mem_address, __m128  x, __m128 y);
     
-    //Returns dot product of Mandelbrot potential gradient with a constant vector
+    //Uses sse instructions, stores dot product of Mandelbrot potential 
+    //gradient with a constant vector at target address
     void MandelbrotLight(float* mem_address, __m128 x, __m128 y);
 }

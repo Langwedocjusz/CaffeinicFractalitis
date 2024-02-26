@@ -1,10 +1,6 @@
 #pragma once
 
-#include "Timer.h"
-
 #include <vector>
-
-#define USE_MULTITHREADING
 
 #ifdef USE_MULTITHREADING
 #include <thread>
@@ -25,8 +21,6 @@ namespace GenData {
     template<typename Fn>
 	void GenerateFractal(std::vector<float>& data, Fn f, Params p)
     {
-	    Timer we("Generating the fractal");
-
         auto IterateImage = [&](size_t start, size_t end)
         {
             const float inv_width  = 1.0f/static_cast<float>(p.width);
@@ -64,8 +58,6 @@ namespace GenData {
 
 	    for (size_t i = 0; i < num_threads; i++)
 	    {
-		    //Start and end are currenlty assumed to both be
-		    //divisible by 4 in the simd version
 		    const size_t start =   i * total / num_threads;
 		    const size_t end = (i+1) * total / num_threads;
 
