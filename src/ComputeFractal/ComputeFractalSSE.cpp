@@ -3,7 +3,7 @@
 #include <cmath>
 #include <array>
 
-void ComputeFractal::Mandelbrot(float* mem_address, __m128  x, __m128 y)
+void ComputeFractalSSE::Mandelbrot(float* mem_address, __m128  x, __m128 y)
 {
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;
@@ -73,7 +73,7 @@ void ComputeFractal::Mandelbrot(float* mem_address, __m128  x, __m128 y)
 }
 
 
-void ComputeFractal::MandelbrotLight(float* mem_address, __m128 x, __m128 y)
+void ComputeFractalSSE::MandelbrotLight(float* mem_address, __m128 x, __m128 y)
 {
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;

@@ -3,7 +3,7 @@
 #include <xmmintrin.h>
 #include <smmintrin.h>
 
-namespace ComputeFractal{
+namespace ComputeFractalSSE{
     //Uses sse instructions, stores (smoothed) iteration counts required
     //to reach bailout radius of four positions at target address
     void Mandelbrot(float* mem_address, __m128  x, __m128 y);

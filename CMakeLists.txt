@@ -29,9 +29,6 @@ target_sources(${PROJECT_NAME} PRIVATE ${headers} ${sources} ${imgui_impl})
 #Specify include directories
 target_include_directories(${PROJECT_NAME} PUBLIC src src/ComputeFractal)
 
-#Enable multithreaded code
-target_compile_definitions(${PROJECT_NAME} PRIVATE "USE_MULTITHREADING")
-
 #SSE compile flags
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE4.1")

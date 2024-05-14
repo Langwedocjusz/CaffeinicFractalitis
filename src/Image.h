@@ -3,10 +3,8 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-
-#ifdef USE_MULTITHREADING
 #include <thread>
-#endif
+#include <optional>
 
 namespace Image {
 	struct Pixel {
@@ -38,7 +36,8 @@ namespace Image {
 	void ColorAndSave(std::vector<float>& data,
 		Fn coloring_function,
 		const std::string& filename,
-		size_t width, size_t height)
+		size_t width, size_t height,
+		std::optional<uint32_t> num_jobs = std::nullopt)
 	{
 		std::vector<Pixel> image;
 		image.resize(width * height);
@@ -51,25 +50,36 @@ namespace Image {
 			}
 		};
 
-#ifdef USE_MULTITHREADING
-		const size_t num_threads = std::thread::hardware_concurrency();
-		const size_t total = image.size();
+		const size_t num_threads = [&](){
+            if (num_jobs.has_value())
+                return num_jobs.value();
+            else
+                return std::thread::hardware_concurrency();
+        }();
 
-		std::vector<std::thread> threads;
+        if (num_threads > 1)
+        {
+	        const size_t total = image.size();
 
-		for (size_t i = 0; i < num_threads; i++)
-		{
-			const size_t start = i * total / num_threads;
-			const size_t end = (i + 1) * total / num_threads;
+			std::vector<std::thread> threads;
 
-			threads.push_back(std::thread(ColorPixels, start, end));
-		}
+			for (size_t i = 0; i < num_threads; i++)
+			{
+				const size_t start = i * total / num_threads;
+				const size_t end = (i + 1) * total / num_threads;
 
-		for (auto& thread : threads)
-			thread.join();
-#else
-		ColorPixels(0, image.size());
-#endif
+				threads.push_back(std::thread(ColorPixels, start, end));
+			}
+
+			for (auto& thread : threads)
+				thread.join();
+        }
+
+        else
+        {
+            ColorPixels(0, image.size());
+        }
+
 		SaveImage(image, filename, width, height);
 	}
 }

@@ -1,12 +1,14 @@
 #include "Timer.h"
 
-#include "ComputeFractalSSE.h"
-#include "GenDataSSE.h"
+#include "GenData.h"
 #include "Image.h"
 
-#include <cmath>
+#include "ComputeFractal.h"
+#include "ComputeFractalSSE.h"
 
 int main(){
+    using GenData::ExecutionPolicy;
+
 	constexpr size_t width  = 1024;
 	constexpr size_t height = 1024;
 
@@ -20,26 +22,24 @@ int main(){
         const float center_x = -0.74f;
         const float center_y = 0.1f;
 
-        const float min_x = center_x - half_ext;
-        const float max_x = center_x + half_ext;
-        const float min_y = center_y - half_ext;
-        const float max_y = center_y + half_ext;
-
-        GenData::Params params{
-            min_x, max_x,
-            min_y, max_y,
-            width, height,
+        const GenData::FrameParams params{
+            .MinX   = center_x - half_ext,
+            .MaxX   = center_x + half_ext,
+            .MinY   = center_y - half_ext,
+            .MaxY   = center_y + half_ext,
+            .Width  = width, 
+            .Height = height,
         };
 
         const std::string filename = std::to_string(i) + ".png";
 
         {
-            Timer we("Coloring and saving the image");
-            GenData::GenerateFractal(data, ComputeFractal::MandelbrotLight, params);
+            Timer we("Generating the fractal");
+            GenData::GenerateFractal<ExecutionPolicy::SSE>(data, ComputeFractalSSE::MandelbrotLight, params);
         }
 
         {
-            Timer we("Generating the fractal");
+            Timer we("Coloring and saving the image");
             Image::ColorAndSave(data, Image::NormedGrayscale, filename, width, height);
         }
 
