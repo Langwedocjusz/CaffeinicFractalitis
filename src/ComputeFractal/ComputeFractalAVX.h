@@ -9,8 +9,6 @@ namespace ComputeFractalAVX{
     
     //Uses avx instructions, stores dot product of Mandelbrot potential 
     //gradient with a constant vector at target address
-    //To-do: Currently there is a bug in the imlementation, which causes the
-    //lower-left quarter to be darker then it should be.
-    //To-do: There are also some artefacts in the shape of black lines
+    //To-do: Fix artefacts in the shape of black lines along potential level sets
     void MandelbrotLight(float* mem_address, __m256 x, __m256 y);
 }

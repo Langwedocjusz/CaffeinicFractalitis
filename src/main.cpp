@@ -37,14 +37,14 @@ int main(){
 
         {
             Timer we("Generating the fractal");
-            GenData::GenerateFractal<ExecutionPolicy::AVX>(data, ComputeFractalAVX::MandelbrotLight, params);
+            GenData::GenerateFractal<ExecutionPolicy::AVX>(data, ComputeFractalAVX::Mandelbrot, params);
         }
 
         {
             Timer we("Coloring and saving the image");
-            Image::ColorAndSave(data, Image::NormedGrayscale, filename, width, height);
+            Image::ColorAndSave(data, Image::IterToColorIQ, filename, width, height);
         }
-
+ 
         half_ext *= 0.9f;
     }
 }

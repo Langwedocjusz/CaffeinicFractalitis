@@ -79,7 +79,7 @@ void ComputeFractalAVX::MandelbrotLight(float* mem_address, __m256 x, __m256 y)
 {
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;
-    constexpr float light_height = 0.5f;
+    constexpr float light_height = 1.5f;
     constexpr float l_x = 0.7071f, l_y = 0.7071f;
 
     __m256 re, im, r2, i2, len2;

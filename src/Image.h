@@ -30,6 +30,11 @@ namespace Image {
 	//Saturation is constant
 	Pixel ColorHSV(float value);
 
+	//Conversion of iteration count to rgb color
+	//Based on one written by Inigo Quilez and used for example here:
+	//https://www.shadertoy.com/view/MltXz2
+	Pixel IterToColorIQ(float iter_count);
+
 	void SaveImage(std::vector<Pixel>& image,
 		const std::string& filename,
 		size_t width, size_t height);

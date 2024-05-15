@@ -25,6 +25,24 @@ Image::Pixel Image::NormedGrayscale(float value)
 	return Image::Pixel{ v, v, v };
 }
 
+Image::Pixel Image::IterToColorIQ(float iter_count)
+{
+	const float freq = 2.0f*0.075f;
+	const std::array<float, 3> phase{3.0f + 0.0f, 3.0f + 0.6f, 3.0f + 1.0f};
+
+	auto processColor = [=](uint32_t id){
+		const float x = 0.5f + 0.5f*std::cos(freq*iter_count + phase[id]);
+
+		return static_cast<uint32_t>(255.0f * x);
+	};
+
+	const uint8_t r = processColor(0);
+	const uint8_t g = processColor(1);
+	const uint8_t b = processColor(2);
+
+	return Image::Pixel{r,g,b};
+}
+
 Image::Pixel Image::ColorHSV(float value)
 {
 	auto normalize = [](float x)

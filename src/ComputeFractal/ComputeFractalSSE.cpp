@@ -77,7 +77,7 @@ void ComputeFractalSSE::MandelbrotLight(float* mem_address, __m128 x, __m128 y)
 {
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;
-    constexpr float light_height = 0.5f;
+    constexpr float light_height = 1.5f;
     constexpr float l_x = 0.7071f, l_y = 0.7071f;
 
     __m128 re, im, r2, i2, len2;
@@ -118,9 +118,11 @@ void ComputeFractalSSE::MandelbrotLight(float* mem_address, __m128 x, __m128 y)
 		__m128 new_re = _mm_add_ps(_mm_sub_ps(r2, i2), x);
 
         //dz -> 2zdz + 1
-        __m128 new_d_re = _mm_add_ps(_mm_mul_ps(
-                    _mm_sub_ps(_mm_mul_ps(re, d_re), _mm_mul_ps(im, d_im)), 
-                    two), one);
+        __m128 new_d_re = _mm_add_ps(
+			_mm_mul_ps(
+                _mm_sub_ps(_mm_mul_ps(re, d_re), _mm_mul_ps(im, d_im)), 
+        	two), 
+		one);
 
         __m128 new_d_im = _mm_mul_ps(_mm_add_ps(_mm_mul_ps(re, d_im), _mm_mul_ps(im, d_re)), two);
 

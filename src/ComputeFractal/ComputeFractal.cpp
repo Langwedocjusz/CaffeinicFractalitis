@@ -40,7 +40,7 @@ float ComputeFractal::MandelbrotLight(float x, float y)
 {
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;
-    constexpr float light_height = 0.5f;
+    constexpr float light_height = 1.5f;
     constexpr float l_x = 0.7071f, l_y = 0.7071f;
 
 	float re = 0.0f, im = 0.0f, r2 = 0.0f, i2 = 0.0f;
@@ -84,7 +84,7 @@ float ComputeFractal::MandelbrotLight(float x, float y)
     float u_len = std::sqrt(u_re * u_re + u_im * u_im);
 
     u_re /= u_len;
-    u_im /= u_im;
+    u_im /= u_len;
 
     const float dot = u_re * l_x + u_im * l_y + light_height;
     return std::max(0.0f, std::min(dot/(1.0f + light_height), 1.0f));
