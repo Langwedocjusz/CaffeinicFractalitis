@@ -5,6 +5,9 @@
 
 #include "ComputeFractal.h"
 #include "ComputeFractalSSE.h"
+#include "ComputeFractalAVX.h"
+
+#include "AlignedAllocator.h"
 
 int main(){
     using GenData::ExecutionPolicy;
@@ -12,8 +15,7 @@ int main(){
 	constexpr size_t width  = 1024;
 	constexpr size_t height = 1024;
 
-	std::vector<float> data;
-	data.resize(width * height);
+    AlignedVector<float> data(width*height);
 
     float half_ext = 1.0f;
 
@@ -35,7 +37,7 @@ int main(){
 
         {
             Timer we("Generating the fractal");
-            GenData::GenerateFractal<ExecutionPolicy::SSE>(data, ComputeFractalSSE::MandelbrotLight, params);
+            GenData::GenerateFractal<ExecutionPolicy::AVX>(data, ComputeFractalAVX::MandelbrotLight, params);
         }
 
         {

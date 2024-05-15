@@ -29,15 +29,18 @@ target_sources(${PROJECT_NAME} PRIVATE ${headers} ${sources} ${imgui_impl})
 #Specify include directories
 target_include_directories(${PROJECT_NAME} PUBLIC src src/ComputeFractal)
 
-#SSE compile flags
+#SSE and AVX compile flags
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE4.1")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")
 endif()
 
 #Add stb image
 target_include_directories(${PROJECT_NAME} PUBLIC vendor/stb_image)
+#Add aligned allocator
+target_include_directories(${PROJECT_NAME} PUBLIC vendor/aligned_alloc)
 
 #Directory structure for IDEs like Visual Studio
 source_group(src REGULAR_EXPRESSION "src/*")

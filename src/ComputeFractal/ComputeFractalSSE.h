@@ -10,5 +10,7 @@ namespace ComputeFractalSSE{
     
     //Uses sse instructions, stores dot product of Mandelbrot potential 
     //gradient with a constant vector at target address
+    //To-do: Currently there is a bug in the imlementation, which causes the
+    //lower-left quarter to be darker then it should be
     void MandelbrotLight(float* mem_address, __m128 x, __m128 y);
 }

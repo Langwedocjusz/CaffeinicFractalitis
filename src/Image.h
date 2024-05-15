@@ -6,6 +6,8 @@
 #include <thread>
 #include <optional>
 
+#include "AlignedAllocator.h"
+
 namespace Image {
 	struct Pixel {
 		uint8_t r;
@@ -33,7 +35,7 @@ namespace Image {
 		size_t width, size_t height);
 
 	template<typename Fn>
-	void ColorAndSave(std::vector<float>& data,
+	void ColorAndSave(AlignedVector<float>& data,
 		Fn coloring_function,
 		const std::string& filename,
 		size_t width, size_t height,
