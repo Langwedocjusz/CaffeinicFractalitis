@@ -9,13 +9,11 @@
 
 static Image::Pixelf hsv_to_rgb(float h, float s, float v);
 
-void Image::SaveImage(std::vector<Pixel>& image,
-	                  const std::string& filename,
-	                  size_t width, size_t height)
+void Image::SaveImage(std::vector<Pixel>& image, ImageInfo info)
 {
 	const size_t channel_nr = 3;
 
-	stbi_write_png(filename.c_str(), width, height, channel_nr, &image[0], width * sizeof(Pixel));
+	stbi_write_png(info.Name.c_str(), info.Width, info.Height, channel_nr, &image[0], info.Width * sizeof(Pixel));
 }
 
 Image::Pixel Image::NormedGrayscale(float value)

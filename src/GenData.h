@@ -6,74 +6,16 @@
 #include <optional>
 #include <iostream>
 
-#include <xmmintrin.h>
-#include <smmintrin.h>
-
-#include <immintrin.h>
-
 #include "AlignedAllocator.h"
+#include "SimdType.h"
+#include "ComputeFractal.h"
 
 namespace GenData {
 
-    enum class ExecutionPolicy{
-        Scalar,
-        SSE,
-        AVX
+    struct ExecutionPolicy{
+        SimdType Simd = SimdType::Scalar;
+        std::optional<uint32_t> NumJobs = std::nullopt;
     };
-
-    template <ExecutionPolicy E, typename Fn, typename Fx, typename Fy>
-    typename std::enable_if<E == ExecutionPolicy::Scalar, void>::type
-    InnerLoop(AlignedVector<float>& data, Fn f, Fx get_x, Fy get_y, size_t start, size_t end) 
-    {
-        for (size_t i = start; i < end; i++)
-        {
-            const float x = get_x(i); 
-            const float y = get_y(i);
-            data[i] = f(x, y);
-        }
-    }
-
-    template <ExecutionPolicy E, typename Fn, typename Fx, typename Fy>
-    typename std::enable_if<E == ExecutionPolicy::SSE, void>::type
-    InnerLoop(AlignedVector<float>& data, Fn f, Fx get_x, Fy get_y, size_t start, size_t end) 
-    {
-        for (size_t i = start; i < end; i += 4)
-        {
-            __m128  x, y;
-
-            x = _mm_set_ps(get_x(i + 3), get_x(i + 2), get_x(i + 1), get_x(i));
-            y = _mm_set_ps(get_y(i + 3), get_y(i + 2), get_y(i + 1), get_y(i));
-
-            float* mem_address = &data[i];
-            f(mem_address, x, y);
-        }
-
-        //To-do: handle case when end is not divisible by 4
-    }
-
-    template <ExecutionPolicy E, typename Fn, typename Fx, typename Fy>
-    typename std::enable_if<E == ExecutionPolicy::AVX, void>::type
-    InnerLoop(AlignedVector<float>& data, Fn f, Fx get_x, Fy get_y, size_t start, size_t end) 
-    {
-        for (size_t i = start; i < end; i += 8)
-        {
-            __m256  x, y;
-
-            x = _mm256_set_ps(
-                get_x(i + 7), get_x(i + 6), get_x(i + 5), get_x(i + 4),
-                get_x(i + 3), get_x(i + 2), get_x(i + 1), get_x(i)
-            );
-            y = _mm256_set_ps(
-                get_y(i + 7), get_y(i + 6), get_y(i + 5), get_y(i + 4),
-                get_y(i + 3), get_y(i + 2), get_y(i + 1), get_y(i)
-            );
-
-            float* mem_address = &data[i];
-            f(mem_address, x, y);
-        }
-
-        //To-do: handle case when end is not divisible by 8
-    }
 
     struct FrameParams{
         float MinX;
@@ -84,61 +26,5 @@ namespace GenData {
         size_t Height;
     };
 
-    template<ExecutionPolicy E, typename Fn>
-	void GenerateFractal(AlignedVector<float>& data, Fn f, FrameParams p, std::optional<uint32_t> num_jobs = std::nullopt)
-    {
-        auto IterateImage = [&](size_t start, size_t end)
-        {
-            const float inv_width  = 1.0f/static_cast<float>(p.Width);
-            const float inv_height = 1.0f/static_cast<float>(p.Height);
-        
-            const float extents_x = p.MaxX - p.MinX;
-            const float extents_y = p.MaxY - p.MinY;
-        	
-            auto getX = [&](size_t id)
-        	{
-        		const float idx = static_cast<float>(id % p.Width);
-        		return extents_x * idx * inv_width + p.MinX;
-        	};
-        
-        	auto getY = [&](size_t id)
-        	{
-        		const float idy = static_cast<float>(p.Height - id / p.Width);
-        		return extents_y * idy * inv_height + p.MinY;
-        	};
-
-            InnerLoop<E>(data, f, getX, getY, start, end);
-        };
-
-        const size_t num_threads = [&](){
-            if (num_jobs.has_value())
-                return num_jobs.value();
-            else
-                return std::thread::hardware_concurrency();
-        }();
-
-        if (num_threads > 1)
-        {
-	        const size_t total = data.size();
-
-	        std::vector<std::thread> threads;
-
-	        for (size_t i = 0; i < num_threads; i++)
-	        {
-	    	    const size_t start =   i * total / num_threads;
-	    	    const size_t end = (i+1) * total / num_threads;
-
-	    	    threads.push_back(std::thread(IterateImage, start, end));
-	        }
-
-	        for (auto& thread : threads)
-	    	    thread.join();
-        }
-
-        else
-        {
-            IterateImage(0, data.size());
-        }
-    }
-
+	void GenerateFractal(AlignedVector<float>& data, GenFunction f, FrameParams p, ExecutionPolicy e);
 }

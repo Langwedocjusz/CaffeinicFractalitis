@@ -35,19 +35,21 @@ namespace Image {
 	//https://www.shadertoy.com/view/MltXz2
 	Pixel IterToColorIQ(float iter_count);
 
-	void SaveImage(std::vector<Pixel>& image,
-		const std::string& filename,
-		size_t width, size_t height);
+	struct ImageInfo{
+		uint32_t Width;
+		uint32_t Height;
+		std::string Name;
+	};
+
+	void SaveImage(std::vector<Pixel>& image, ImageInfo info);
 
 	template<typename Fn>
 	void ColorAndSave(AlignedVector<float>& data,
 		Fn coloring_function,
-		const std::string& filename,
-		size_t width, size_t height,
+		ImageInfo info,
 		std::optional<uint32_t> num_jobs = std::nullopt)
 	{
-		std::vector<Pixel> image;
-		image.resize(width * height);
+		std::vector<Pixel> image(data.size());
 
 		auto ColorPixels = [&](size_t start, size_t end)
 		{
@@ -87,6 +89,6 @@ namespace Image {
             ColorPixels(0, image.size());
         }
 
-		SaveImage(image, filename, width, height);
+		SaveImage(image, info);
 	}
 }
