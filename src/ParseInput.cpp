@@ -10,7 +10,7 @@ ProgramArgs ParseInput(int argc, char* argv[])
 {
     ProgramArgs res;
 
-    constexpr uint32_t supported_args = 2;
+    constexpr uint32_t supported_args = 3;
 
     if (argc > supported_args + 1)
     {
@@ -21,6 +21,7 @@ ProgramArgs ParseInput(int argc, char* argv[])
     const std::vector<std::string_view> args(argv+1, argv+argc);
 
     bool num_jobs_set = false;
+    bool simd_type_set = false;
 
     for (size_t i=0; i<args.size(); i++)
     {
@@ -41,6 +42,43 @@ ProgramArgs ParseInput(int argc, char* argv[])
             const uint32_t num_jobs = std::stoi(std::string(args[i+1]));
 
             res.NumJobs = num_jobs;
+            num_jobs_set = true;
+        }
+
+        else if (args[i] == "-Scalar")
+        {
+            if (simd_type_set)
+            {
+                res.ExitMessage = "Cannot set multiple simd flags at once.";
+                return res;
+            }
+
+            res.Simd = SimdType::Scalar;
+            simd_type_set = true;
+        }
+
+        else if (args[i] == "-SSE")
+        {
+            if (simd_type_set)
+            {
+                res.ExitMessage = "Cannot set multiple simd flags at once.";
+                return res;
+            }
+
+            res.Simd = SimdType::SSE;
+            simd_type_set = true;
+        }
+
+        else if (args[i] == "-AVX")
+        {
+            if (simd_type_set)
+            {
+                res.ExitMessage = "Cannot set multiple simd flags at once.";
+                return res;
+            }
+
+            res.Simd = SimdType::AVX;
+            simd_type_set = true;
         }
     }
 

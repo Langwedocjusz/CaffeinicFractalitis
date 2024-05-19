@@ -85,15 +85,13 @@ namespace GenData {
                 }
 
                 break;
-            }
+             }
             case SSE:
             {
-                for (size_t i = start; i < end; i += 4)
+                 for (size_t i = start; i < end; i += 4)
                 {
-                    __m128  x, y;
-
-                    x = _mm_set_ps(get_x(i + 3), get_x(i + 2), get_x(i + 1), get_x(i));
-                    y = _mm_set_ps(get_y(i + 3), get_y(i + 2), get_y(i + 1), get_y(i));
+                    __m128 x = _mm_set_ps(get_x(i + 3), get_x(i + 2), get_x(i + 1), get_x(i));
+                    __m128 y = _mm_set_ps(get_y(i + 3), get_y(i + 2), get_y(i + 1), get_y(i));
 
                     float* mem_address = &data[i];
                     f.SSE(mem_address, x, y);
@@ -105,13 +103,12 @@ namespace GenData {
             {
                 for (size_t i = start; i < end; i += 8)
                 {
-                    __m256  x, y;
-
-                    x = _mm256_set_ps(
+                    __m256 x = _mm256_set_ps(
                         get_x(i + 7), get_x(i + 6), get_x(i + 5), get_x(i + 4),
                         get_x(i + 3), get_x(i + 2), get_x(i + 1), get_x(i)
                     );
-                    y = _mm256_set_ps(
+
+                    __m256 y = _mm256_set_ps(
                         get_y(i + 7), get_y(i + 6), get_y(i + 5), get_y(i + 4),
                         get_y(i + 3), get_y(i + 2), get_y(i + 1), get_y(i)
                     );

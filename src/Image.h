@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 #include <optional>
+#include <functional>
 
 #include "AlignedAllocator.h"
 
@@ -24,6 +25,7 @@ namespace Image {
 	//Converts float values to grayscale pixels
 	//assuming they were already normalized to [0,1]
 	Pixel NormedGrayscale(float value);
+
 	//Convers float values to colorful pixels
 	//Hue is periodic function of the value
 	//Brightness is monotonic mapping of [0, inf) onto [0, 1)
@@ -43,52 +45,7 @@ namespace Image {
 
 	void SaveImage(std::vector<Pixel>& image, ImageInfo info);
 
-	template<typename Fn>
-	void ColorAndSave(AlignedVector<float>& data,
-		Fn coloring_function,
-		ImageInfo info,
-		std::optional<uint32_t> num_jobs = std::nullopt)
-	{
-		std::vector<Pixel> image(data.size());
+	typedef std::function<Pixel(float)> ColoringFn;
 
-		auto ColorPixels = [&](size_t start, size_t end)
-		{
-			for (size_t i = start; i < end; i++)
-			{
-				image[i] = coloring_function(data[i]);
-			}
-		};
-
-		const size_t num_threads = [&](){
-            if (num_jobs.has_value())
-                return num_jobs.value();
-            else
-                return std::thread::hardware_concurrency();
-        }();
-
-        if (num_threads > 1)
-        {
-	        const size_t total = image.size();
-
-			std::vector<std::thread> threads;
-
-			for (size_t i = 0; i < num_threads; i++)
-			{
-				const size_t start = i * total / num_threads;
-				const size_t end = (i + 1) * total / num_threads;
-
-				threads.push_back(std::thread(ColorPixels, start, end));
-			}
-
-			for (auto& thread : threads)
-				thread.join();
-        }
-
-        else
-        {
-            ColorPixels(0, image.size());
-        }
-
-		SaveImage(image, info);
-	}
+	void ColorAndSave(AlignedVector<float>&data, ColoringFn f, ImageInfo info, std::optional<uint32_t> num_jobs = std::nullopt);
 }

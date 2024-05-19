@@ -10,8 +10,7 @@
 struct ProgramArgs{
     std::optional<uint32_t> NumJobs;
     std::optional<std::string> ExitMessage;
-
-    SimdType Simd = SimdType::Scalar;
+    std::optional<SimdType> Simd;
 };
 
 ProgramArgs ParseInput(int argc, char* argv[]);

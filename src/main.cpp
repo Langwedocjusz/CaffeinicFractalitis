@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
     constexpr float center_y = 0.1f;
 
     Generator gen_choice = Generator::Mandelbrot;
-    SimdType simd_type = SimdType::AVX;
+    const auto gen_function = GetGeneratingFunction(gen_choice);
 
     ProgramArgs args = ParseInput(argc, argv);
     
@@ -27,7 +27,9 @@ int main(int argc, char* argv[])
 
     AlignedVector<float> data(width*height);
 
-    const auto gen_function = GetGeneratingFunction(gen_choice);
+    SimdType simd_type = args.Simd.has_value()
+                       ? args.Simd.value()
+                       : SimdType::AVX;
 
     float half_ext = 1.0f;
 

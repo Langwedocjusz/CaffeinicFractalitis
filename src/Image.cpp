@@ -16,6 +16,48 @@ void Image::SaveImage(std::vector<Pixel>& image, ImageInfo info)
 	stbi_write_png(info.Name.c_str(), info.Width, info.Height, channel_nr, &image[0], info.Width * sizeof(Pixel));
 }
 
+void Image::ColorAndSave(AlignedVector<float>&data, ColoringFn f, ImageInfo info, std::optional<uint32_t> num_jobs)
+{
+	std::vector<Pixel> image(data.size());
+
+	auto ColorPixels = [&](size_t start, size_t end)
+	{
+		for (size_t i = start; i < end; i++)
+		{
+			image[i] = f(data[i]);
+		}
+	};
+
+	const size_t num_threads = [&](){
+        if (num_jobs.has_value())
+            return num_jobs.value();
+        else
+            return std::thread::hardware_concurrency();
+    }();
+
+    if (num_threads > 1)
+    {
+	    const size_t total = image.size();
+		std::vector<std::thread> threads;
+
+		for (size_t i = 0; i < num_threads; i++)
+		{
+			const size_t start = i * total / num_threads;
+			const size_t end = (i + 1) * total / num_threads;
+			threads.push_back(std::thread(ColorPixels, start, end));
+		}
+		
+		for (auto& thread : threads)
+			thread.join();
+    }
+    else
+    {
+        ColorPixels(0, image.size());
+    }
+
+	SaveImage(image, info);
+}
+
 Image::Pixel Image::NormedGrayscale(float value)
 {
 	const uint8_t v = static_cast<uint8_t>(255.0f * value);
