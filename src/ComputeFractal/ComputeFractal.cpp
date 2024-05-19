@@ -1,7 +1,7 @@
 #include "ComputeFractal.h"
 
-#include "Mandelbrot.h"
-#include "MandelbrotLight.h"
+#include "SmoothIter.h"
+#include "Gradient.h"
 
 #include <map>
 
@@ -10,8 +10,8 @@ GenFunction GetGeneratingFunction(Generator g)
     using namespace ComputeFractal;
 
     std::map<Generator, GenFunction> gen_functions{
-        {Generator::Mandelbrot,      {Mandelbrot,      MandelbrotSSE,      MandelbrotAVX}},
-        {Generator::MandelbrotLight, {MandelbrotLight, MandelbrotLightSSE, MandelbrotLightAVX}},
+        {Generator::SmoothIter, {SmoothIter, SmoothIterSSE, SmoothIterAVX}},
+        {Generator::Gradient,   {Gradient,   GradientSSE,   GradientAVX}},
     };
 
     return gen_functions[g];

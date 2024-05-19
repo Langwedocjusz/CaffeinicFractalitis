@@ -7,8 +7,8 @@
 #include <functional>
 
 enum class Generator{
-    Mandelbrot, 
-    MandelbrotLight
+    SmoothIter, 
+    Gradient
 };
 
 typedef std::function<float(float, float)> ScalarFunction;

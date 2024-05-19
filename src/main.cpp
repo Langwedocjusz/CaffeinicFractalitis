@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
     constexpr float center_x = -0.745f;
     constexpr float center_y = 0.1f;
 
-    Generator gen_choice = Generator::Mandelbrot;
+    Generator gen_choice = Generator::SmoothIter;
     const auto gen_function = GetGeneratingFunction(gen_choice);
 
     ProgramArgs args = ParseInput(argc, argv);
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 
     SimdType simd_type = args.Simd.has_value()
                        ? args.Simd.value()
-                       : SimdType::AVX;
+                       : SimdType::SSE;
 
     float half_ext = 1.0f;
 

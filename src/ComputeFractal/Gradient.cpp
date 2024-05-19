@@ -1,8 +1,8 @@
-#include "MandelbrotLight.h"
+#include "Gradient.h"
 
 #include <cmath>
 
-float ComputeFractal::MandelbrotLight(float x, float y)
+float ComputeFractal::Gradient(float x, float y)
 {
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;
@@ -56,31 +56,26 @@ float ComputeFractal::MandelbrotLight(float x, float y)
     return std::max(0.0f, std::min(dot/(1.0f + light_height), 1.0f));
 }
 
-void ComputeFractal::MandelbrotLightSSE(float* mem_address, __m128 x, __m128 y)
+void ComputeFractal::GradientSSE(float* mem_address, __m128 x, __m128 y)
 {
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;
     constexpr float light_height = 1.5f;
     constexpr float l_x = 0.7071f, l_y = 0.7071f;
 
-    __m128 re, im, r2, i2, len2;
-	__m128 d_re, d_im;
-    __m128 condition;
+    __m128 len2;
 
-	__m128 final_re, final_im;
-    __m128 final_d_re, final_d_im;
-
-    re = _mm_setzero_ps();
-    im = _mm_setzero_ps();
-    r2 = _mm_setzero_ps();
-    i2 = _mm_setzero_ps();
-    d_re = _mm_setzero_ps();
-    d_im = _mm_setzero_ps();
-    condition = _mm_setzero_ps();
-    final_re = _mm_setzero_ps();
-    final_im = _mm_setzero_ps();
-    final_d_re = _mm_setzero_ps();
-    final_d_im = _mm_setzero_ps();
+    __m128 re = _mm_setzero_ps();
+    __m128 im = _mm_setzero_ps();
+    __m128 r2 = _mm_setzero_ps();
+    __m128 i2 = _mm_setzero_ps();
+    __m128 d_re = _mm_setzero_ps();
+    __m128 d_im = _mm_setzero_ps();
+    __m128 condition = _mm_setzero_ps();
+    __m128 final_re = _mm_setzero_ps();
+    __m128 final_im = _mm_setzero_ps();
+    __m128 final_d_re = _mm_setzero_ps();
+    __m128 final_d_im = _mm_setzero_ps();
 
     const __m128 zero = _mm_set1_ps(0.0f);
 	const __m128 one = _mm_set1_ps(1.0f);
@@ -107,7 +102,9 @@ void ComputeFractal::MandelbrotLightSSE(float* mem_address, __m128 x, __m128 y)
         	two), 
 		one);
 
-        __m128 new_d_im = _mm_mul_ps(_mm_add_ps(_mm_mul_ps(re, d_im), _mm_mul_ps(im, d_re)), two);
+        __m128 new_d_im = _mm_mul_ps(
+            _mm_add_ps(_mm_mul_ps(re, d_im), _mm_mul_ps(im, d_re)),
+        two);
 
         re = new_re;
         im = new_im;
@@ -117,7 +114,7 @@ void ComputeFractal::MandelbrotLightSSE(float* mem_address, __m128 x, __m128 y)
 		r2 = _mm_mul_ps(re, re);
 		i2 = _mm_mul_ps(im, im);
 
-		len2 = _mm_add_ps(r2, i2);
+		const __m128 len2 = _mm_add_ps(r2, i2);
 
 		//Save values of only those pixels that are yet to bail out
 		final_re = _mm_blendv_ps(re, final_re, condition);
@@ -154,31 +151,24 @@ void ComputeFractal::MandelbrotLightSSE(float* mem_address, __m128 x, __m128 y)
 	_mm_store_ps(mem_address, res);
 }
 
-void ComputeFractal::MandelbrotLightAVX(float* mem_address, __m256 x, __m256 y)
+void ComputeFractal::GradientAVX(float* mem_address, __m256 x, __m256 y)
 {
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;
     constexpr float light_height = 1.5f;
     constexpr float l_x = 0.7071f, l_y = 0.7071f;
 
-    __m256 re, im, r2, i2, len2;
-	__m256 d_re, d_im;
-    __m256 condition;
-
-	__m256 final_re, final_im;
-    __m256 final_d_re, final_d_im;
-
-    re = _mm256_setzero_ps();
-    im = _mm256_setzero_ps();
-    r2 = _mm256_setzero_ps();
-    i2 = _mm256_setzero_ps();
-    d_re = _mm256_setzero_ps();
-    d_im = _mm256_setzero_ps();
-    condition = _mm256_setzero_ps();
-    final_re = _mm256_setzero_ps();
-    final_im = _mm256_setzero_ps();
-    final_d_re = _mm256_setzero_ps();
-    final_d_im = _mm256_setzero_ps();
+    __m256 re = _mm256_setzero_ps();
+    __m256 im = _mm256_setzero_ps();
+    __m256 r2 = _mm256_setzero_ps();
+    __m256 i2 = _mm256_setzero_ps();
+    __m256 d_re = _mm256_setzero_ps();
+    __m256 d_im = _mm256_setzero_ps();
+    __m256 condition = _mm256_setzero_ps();
+    __m256 final_re = _mm256_setzero_ps();
+    __m256 final_im = _mm256_setzero_ps();
+    __m256 final_d_re = _mm256_setzero_ps();
+    __m256 final_d_im = _mm256_setzero_ps();
 
     const __m256 zero = _mm256_set1_ps(0.0f);
 	const __m256 one = _mm256_set1_ps(1.0f);
@@ -213,7 +203,7 @@ void ComputeFractal::MandelbrotLightAVX(float* mem_address, __m256 x, __m256 y)
 		r2 = _mm256_mul_ps(re, re);
 		i2 = _mm256_mul_ps(im, im);
 
-		len2 = _mm256_add_ps(r2, i2);
+		const __m256 len2 = _mm256_add_ps(r2, i2);
 
 		//Save values of only those pixels that are yet to bail out
 		final_re = _mm256_blendv_ps(re, final_re, condition);

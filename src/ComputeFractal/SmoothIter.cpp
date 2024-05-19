@@ -1,15 +1,16 @@
-#include "Mandelbrot.h"
+#include "SmoothIter.h"
 
 #include <cmath>
 #include <array>
 
-float ComputeFractal::Mandelbrot(float x, float y)
+float ComputeFractal::SmoothIter(float x, float y)
 {
     constexpr size_t iter_max = 400;
     constexpr float bailout = 8.0f;
 
-	float re = 0.0f, im = 0.0f, r2 = 0.0f, i2 = 0.0f;
-
+	float re = 0.0f, im = 0.0f;
+	float r2 = 0.0f, i2 = 0.0f;
+	float len2 = 0.0f;
 	float iterations = 0.0f;
 
 	for (size_t k = 0; k < iter_max; k++)
@@ -20,12 +21,12 @@ float ComputeFractal::Mandelbrot(float x, float y)
 		r2 = re * re;
 		i2 = im * im;
 
-		if ((r2 + i2) > bailout*bailout) break;
+		len2 = r2 + i2;
+
+		if (len2 > bailout*bailout) break;
 
 		iterations += 1.0f;
 	}
-
-	const float len2 = r2 + i2;
 
 	constexpr float deg = 2.0f;
 	const float inv_log_bail = 1.0f / std::log(bailout);
@@ -37,30 +38,25 @@ float ComputeFractal::Mandelbrot(float x, float y)
 	return iterations - smoothing;
 }
 
-void ComputeFractal::MandelbrotSSE(float* mem_address, __m128  x, __m128 y)
+void ComputeFractal::SmoothIterSSE(float* mem_address, __m128  x, __m128 y)
 {
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;
-	
-    __m128 re, im, r2, i2, len2;
-	__m128 condition, iter;
-	__m128 final_len2;
 
-	re = _mm_setzero_ps();
-	im = _mm_setzero_ps();
-	r2 = _mm_setzero_ps();
-	i2 = _mm_setzero_ps();
+	__m128 re = _mm_setzero_ps();
+	__m128 im = _mm_setzero_ps();
+	__m128 r2 = _mm_setzero_ps();
+	__m128 i2 = _mm_setzero_ps();
+	__m128 condition = _mm_setzero_ps();
+	__m128 iter = _mm_setzero_ps();
 
-	condition = _mm_setzero_ps();
-	iter = _mm_setzero_ps();
 	//Since smooth iteration count is computed using the modulus of last position,
 	//we need additional variable for this, as re and im will all be iterated
 	//until all four bailout conditions are met
-	final_len2 = _mm_setzero_ps(); 
+	__m128 final_len2 = _mm_setzero_ps(); 
 
 	const __m128 one = _mm_set1_ps(1.0f);
 	const __m128 two = _mm_set1_ps(2.0f);
-
 	const __m128 bail2 = _mm_set1_ps(bailout*bailout);
 
 	for (size_t k = 0; k < iter_max; k++)
@@ -74,7 +70,8 @@ void ComputeFractal::MandelbrotSSE(float* mem_address, __m128  x, __m128 y)
 		r2 = _mm_mul_ps(re, re);
 		i2 = _mm_mul_ps(im, im);
 
-		len2 = _mm_add_ps(r2, i2);
+		const __m128 len2 = _mm_add_ps(r2, i2);
+
 		//Copy len2's of only those pixels that are yet to bail out
 		final_len2 = _mm_blendv_ps(len2, final_len2, condition);
 			
@@ -106,30 +103,25 @@ void ComputeFractal::MandelbrotSSE(float* mem_address, __m128  x, __m128 y)
 	}
 }
 
-void ComputeFractal::MandelbrotAVX(float* mem_address, __m256  x, __m256 y)
+void ComputeFractal::SmoothIterAVX(float* mem_address, __m256  x, __m256 y)
 {
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;
-	
-    __m256 re, im, r2, i2, len2;
-	__m256 condition, iter;
-	__m256 final_len2;
 
-	re = _mm256_setzero_ps();
-	im = _mm256_setzero_ps();
-	r2 = _mm256_setzero_ps();
-	i2 = _mm256_setzero_ps();
+	__m256 re = _mm256_setzero_ps();
+	__m256 im = _mm256_setzero_ps();
+	__m256 r2 = _mm256_setzero_ps();
+	__m256 i2 = _mm256_setzero_ps();
+	__m256 condition = _mm256_setzero_ps();
+	__m256 iter = _mm256_setzero_ps();
 
-	condition = _mm256_setzero_ps();
-	iter = _mm256_setzero_ps();
 	//Since smooth iteration count is computed using the modulus of last position,
 	//we need additional variable for this, as re and im will all be iterated
 	//until all four bailout conditions are met
-	final_len2 = _mm256_setzero_ps(); 
+	__m256 final_len2 = _mm256_setzero_ps(); 
 
 	const __m256 one = _mm256_set1_ps(1.0f);
 	const __m256 two = _mm256_set1_ps(2.0f);
-
 	const __m256 bail2 = _mm256_set1_ps(bailout*bailout);
 
 	for (size_t k = 0; k < iter_max; k++)
@@ -143,7 +135,8 @@ void ComputeFractal::MandelbrotAVX(float* mem_address, __m256  x, __m256 y)
 		r2 = _mm256_mul_ps(re, re);
 		i2 = _mm256_mul_ps(im, im);
 
-		len2 = _mm256_add_ps(r2, i2);
+		const __m256 len2 = _mm256_add_ps(r2, i2);
+
 		//Copy len2's of only those pixels that are yet to bail out
 		final_len2 = _mm256_blendv_ps(len2, final_len2, condition);
 			
