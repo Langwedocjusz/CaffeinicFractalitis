@@ -85,12 +85,17 @@ ProgramArgs ParseInput(int argc, char* argv[])
     return res;
 }
 
+static bool IsDigit(char ch)
+{
+    return std::isdigit(static_cast<unsigned char>(ch));
+}
+
 static bool IsUint(std::string_view token)
 {        
     bool res = true;
 
     for (const char ch : token)
-        res &= isdigit(ch);
+        res &= IsDigit(ch);
 
     return res;
 }
