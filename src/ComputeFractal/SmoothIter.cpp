@@ -3,25 +3,28 @@
 #include <cmath>
 #include <array>
 
+#include "ComplexArithmetic.h"
+
 float ComputeFractal::SmoothIter(float x, float y)
 {
+	using enum SimdType;
+	using complex = Complex<Scalar>;
+
     constexpr size_t iter_max = 400;
     constexpr float bailout = 8.0f;
 
-	float re = 0.0f, im = 0.0f;
-	float r2 = 0.0f, i2 = 0.0f;
+	const complex c(x, y);
+
+	complex z(0.0f, 0.0f);
+
 	float len2 = 0.0f;
 	float iterations = 0.0f;
 
 	for (size_t k = 0; k < iter_max; k++)
 	{
-		im = 2.0f * re * im + y;
-		re = r2 - i2        + x;
-		
-		r2 = re * re;
-		i2 = im * im;
+		z = z*z + c;
 
-		len2 = r2 + i2;
+		len2 = complex::Len2(z).Value;
 
 		if (len2 > bailout*bailout) break;
 
@@ -40,13 +43,16 @@ float ComputeFractal::SmoothIter(float x, float y)
 
 void ComputeFractal::SmoothIterSSE(float* mem_address, __m128  x, __m128 y)
 {
+	using enum SimdType;
+	using complex = Complex<SSE>;
+
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;
 
-	__m128 re = _mm_setzero_ps();
-	__m128 im = _mm_setzero_ps();
-	__m128 r2 = _mm_setzero_ps();
-	__m128 i2 = _mm_setzero_ps();
+	const complex c(x, y);
+
+	complex z(0.0f, 0.0f);
+
 	__m128 condition = _mm_setzero_ps();
 	__m128 iter = _mm_setzero_ps();
 
@@ -56,21 +62,13 @@ void ComputeFractal::SmoothIterSSE(float* mem_address, __m128  x, __m128 y)
 	__m128 final_len2 = _mm_setzero_ps(); 
 
 	const __m128 one = _mm_set1_ps(1.0f);
-	const __m128 two = _mm_set1_ps(2.0f);
 	const __m128 bail2 = _mm_set1_ps(bailout*bailout);
 
 	for (size_t k = 0; k < iter_max; k++)
 	{
-		im = _mm_mul_ps(re, im);
-		im = _mm_mul_ps(im, two);
-		im = _mm_add_ps(im, y);
+		z = z*z + c;
 
-		re = _mm_add_ps(_mm_sub_ps(r2, i2), x);
-
-		r2 = _mm_mul_ps(re, re);
-		i2 = _mm_mul_ps(im, im);
-
-		const __m128 len2 = _mm_add_ps(r2, i2);
+		const __m128 len2 = complex::Len2(z).Value;
 
 		//Copy len2's of only those pixels that are yet to bail out
 		final_len2 = _mm_blendv_ps(len2, final_len2, condition);
@@ -105,13 +103,16 @@ void ComputeFractal::SmoothIterSSE(float* mem_address, __m128  x, __m128 y)
 
 void ComputeFractal::SmoothIterAVX(float* mem_address, __m256  x, __m256 y)
 {
+	using enum SimdType;
+	using complex = Complex<AVX>;
+
     constexpr size_t iter_max = 400;
     constexpr float bailout = 100.0f;
 
-	__m256 re = _mm256_setzero_ps();
-	__m256 im = _mm256_setzero_ps();
-	__m256 r2 = _mm256_setzero_ps();
-	__m256 i2 = _mm256_setzero_ps();
+	const complex c(x, y);
+
+	complex z(0.0f, 0.0f);
+
 	__m256 condition = _mm256_setzero_ps();
 	__m256 iter = _mm256_setzero_ps();
 
@@ -121,21 +122,13 @@ void ComputeFractal::SmoothIterAVX(float* mem_address, __m256  x, __m256 y)
 	__m256 final_len2 = _mm256_setzero_ps(); 
 
 	const __m256 one = _mm256_set1_ps(1.0f);
-	const __m256 two = _mm256_set1_ps(2.0f);
 	const __m256 bail2 = _mm256_set1_ps(bailout*bailout);
 
 	for (size_t k = 0; k < iter_max; k++)
 	{
-		im = _mm256_mul_ps(re, im);
-		im = _mm256_mul_ps(im, two);
-		im = _mm256_add_ps(im, y);
+		z = z*z + c;
 
-		re = _mm256_add_ps(_mm256_sub_ps(r2, i2), x);
-
-		r2 = _mm256_mul_ps(re, re);
-		i2 = _mm256_mul_ps(im, im);
-
-		const __m256 len2 = _mm256_add_ps(r2, i2);
+		const __m256 len2 = complex::Len2(z).Value;
 
 		//Copy len2's of only those pixels that are yet to bail out
 		final_len2 = _mm256_blendv_ps(len2, final_len2, condition);
