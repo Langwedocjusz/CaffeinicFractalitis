@@ -61,6 +61,6 @@ int main(int argc, char* argv[])
             Image::ColorAndSave(data, coloring_fn, info, args.NumJobs);
         }
  
-        half_ext *= 0.9f;
+        half_ext *= args.ZoomSpeed;
     }
 }
