@@ -1,0 +1,10 @@
+{
+    "Image Width" : 1024,
+    "Image Height" : 1024,
+    "Num Frames" : 100,
+    "Image Center" : [-0.7446, 0.1],
+    "Initial Width" : 2.0,
+    "Zoom Speed" : 0.9,
+    "Generator" : "SmoothIter",
+    "Coloring" : "IterToColorIQ"
+}

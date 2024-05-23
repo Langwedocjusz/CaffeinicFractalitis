@@ -22,6 +22,17 @@ namespace Image {
 		float b;
 	};
 
+	typedef std::function<Pixel(float)> ColoringFn;
+
+	enum class ImageColoring{
+		None,
+		IterToColorIQ,
+		NormedGrayscale,
+		ColorHSV
+	};
+
+	ColoringFn GetColoringFunction(ImageColoring c);
+
 	//Converts float values to grayscale pixels
 	//assuming they were already normalized to [0,1]
 	Pixel NormedGrayscale(float value);
@@ -44,8 +55,6 @@ namespace Image {
 	};
 
 	void SaveImage(std::vector<Pixel>& image, ImageInfo info);
-
-	typedef std::function<Pixel(float)> ColoringFn;
 
 	void ColorAndSave(AlignedVector<float>&data, ColoringFn f, ImageInfo info, std::optional<uint32_t> num_jobs = std::nullopt);
 }

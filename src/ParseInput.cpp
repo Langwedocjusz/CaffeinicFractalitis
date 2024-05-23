@@ -1,85 +1,199 @@
 #include "ParseInput.h"
 
+#include <expected>
 #include <vector>
+#include <map>
 #include <cctype>
+
+#include <fstream>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 static bool IsUint(std::string_view token);
 static bool IsZero(std::string_view token);
+
+static auto GetJobs(std::vector<std::string_view>& args) 
+    -> std::expected<std::optional<uint32_t>, std::string>
+{
+    std::optional<uint32_t> ret = std::nullopt;
+
+    bool already_set = false;
+
+    for (auto it = args.begin(); it != args.end();)
+    {
+        bool erase = false;
+
+        if (*it == "-j")
+        {
+            if (already_set)
+                return std::unexpected("Cannot set -j option more than once.");
+
+            already_set = true;
+
+            if (it + 1 != args.end())
+            {
+                auto value = *(it + 1);
+
+                if (!IsUint(value) || IsZero(value))
+                {
+                    return std::unexpected("Option -j can only be set to positive integer value");
+                }
+
+                ret = std::stoi(std::string(value));
+
+                erase = true;
+            }
+        }
+
+        if (erase)
+            args.erase(it, it+2);
+        else
+            ++it;
+    }
+
+    return ret;
+}
+
+static auto GetSimd(std::vector<std::string_view>& args)
+    -> std::expected<std::optional<SimdType>, std::string>
+{
+    std::optional<SimdType> ret = std::nullopt;
+
+    bool already_set = false;
+
+    const std::map<std::string, SimdType> simd_options{
+        {"-Scalar", SimdType::Scalar},
+        {"-SSE",    SimdType::SSE},
+        {"-AVX",    SimdType::AVX},
+    };
+
+    for (auto it = args.begin(); it != args.end();)
+    {
+        std::string opt(*it);
+
+        bool erase = false;
+
+        if (simd_options.count(opt))
+        {
+            if (already_set)
+            {
+                return std::unexpected("Simd option flag can only be set once");
+            }
+
+            already_set = true;
+
+            ret = simd_options.at(opt);
+
+            erase = true;
+        }
+
+        if(erase) 
+            args.erase(it);
+        else 
+            ++it;
+    }
+
+    return ret;
+}
 
 ProgramArgs ParseInput(int argc, char* argv[])
 {
     ProgramArgs res;
 
-    constexpr uint32_t supported_args = 3;
+    constexpr uint32_t max_supported_args = 4;
 
-    if (argc > supported_args + 1)
+    if (argc > max_supported_args + 1)
     {
         res.ExitMessage = "Too many arguments provided.";
         return res;
     }
         
-    const std::vector<std::string_view> args(argv+1, argv+argc);
+    std::vector<std::string_view> args(argv+1, argv+argc);
 
-    bool num_jobs_set = false;
-    bool simd_type_set = false;
+    const auto jobs = GetJobs(args);
 
-    for (size_t i=0; i<args.size(); i++)
+    if (jobs.has_value())
+        res.NumJobs = jobs.value();
+    else
     {
-        if (args[i] == "-j")
+        res.ExitMessage = jobs.error();
+        return res;
+    }
+        
+    const auto simd = GetSimd(args);
+
+    if (simd.has_value())
+        res.Simd = simd.value();
+    else
+    {
+        res.ExitMessage = simd.error();
+        return res;
+    }
+
+    if (args.size() != 1)
+    {
+        res.ExitMessage = "Missing parameter: path to json file";
+        return res;
+    }
+
+    std::string filename(args[0]);
+
+    std::ifstream file(filename);
+
+    if (file)
+    {
+        try
         {
-            if (num_jobs_set)
+            json data = json::parse(file);
+
+            auto RetrieveGenerator = [](const std::string& token)
             {
-                res.ExitMessage = "Cannot set -j option more than once.";
-                return res;
-            }
+                const std::map<std::string, FractalGenerator> map{
+                    {"SmoothIter", FractalGenerator::SmoothIter},
+                    {"Gradient",   FractalGenerator::Gradient}
+                };
 
-            if (!IsUint(args[i+1]) || IsZero(args[i+1]))
+                return map.at(token);
+            };
+
+            auto RetrieveColoring = [](const std::string& token)
             {
-                res.ExitMessage = "Option -j can only be set to positive integer value";
-                return res;
-            }
+                using namespace Image;
 
-            const uint32_t num_jobs = std::stoi(std::string(args[i+1]));
+                const std::map<std::string, ImageColoring> map{
+                    {"IterToColorIQ",   ImageColoring::IterToColorIQ},
+                    {"NormedGrayscale", ImageColoring::NormedGrayscale},
+                    {"ColorHSV",        ImageColoring::ColorHSV}
+                };
 
-            res.NumJobs = num_jobs;
-            num_jobs_set = true;
+                return map.at(token);
+            };
+
+            res.Width = data["Image Width"];
+            res.Height = data["Image Height"];
+            res.NumFrames = data["Num Frames"];
+
+            res.CenterX = data["Image Center"][0];
+            res.CenterY = data["Image Center"][1];
+            res.InitialWidth = data["Initial Width"];
+            res.ZoomSpeed = data["Zoom Speed"];
+
+            res.Generator = RetrieveGenerator(data["Generator"]);
+            res.Coloring = RetrieveColoring(data["Coloring"]);
         }
 
-        else if (args[i] == "-Scalar")
+        catch(const json::exception& e)
         {
-            if (simd_type_set)
-            {
-                res.ExitMessage = "Cannot set multiple simd flags at once.";
-                return res;
-            }
-
-            res.Simd = SimdType::Scalar;
-            simd_type_set = true;
+            res.ExitMessage = e.what();
+            return res;
         }
+    }
 
-        else if (args[i] == "-SSE")
-        {
-            if (simd_type_set)
-            {
-                res.ExitMessage = "Cannot set multiple simd flags at once.";
-                return res;
-            }
-
-            res.Simd = SimdType::SSE;
-            simd_type_set = true;
-        }
-
-        else if (args[i] == "-AVX")
-        {
-            if (simd_type_set)
-            {
-                res.ExitMessage = "Cannot set multiple simd flags at once.";
-                return res;
-            }
-
-            res.Simd = SimdType::AVX;
-            simd_type_set = true;
-        }
+    else
+    {
+        res.ExitMessage = "Failed to open file " + filename;
+        return res;
     }
 
     return res;

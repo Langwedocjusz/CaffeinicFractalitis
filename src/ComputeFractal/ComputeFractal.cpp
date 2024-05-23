@@ -5,16 +5,21 @@
 
 #include <map>
 
-GenFunction GetGeneratingFunction(Generator g)
+GenFunction GetGeneratingFunction(FractalGenerator g)
 {
     using namespace ComputeFractal;
 
-    std::map<Generator, GenFunction> gen_functions{
-        {Generator::SmoothIter, {SmoothIter, SmoothIterSSE, SmoothIterAVX}},
-        {Generator::Gradient,   {Gradient,   GradientSSE,   GradientAVX}},
+    auto ReturnZero = [](float, float){return 0.0f;};
+    auto DoNothingSSE = [](float*, __m128, __m128){};
+    auto DoNothingAVX = [](float*, __m256, __m256){};
+
+    const std::map<FractalGenerator, GenFunction> gen_functions{
+        {FractalGenerator::None,       {ReturnZero, DoNothingSSE, DoNothingAVX}},
+        {FractalGenerator::SmoothIter, {SmoothIter, SmoothIterSSE, SmoothIterAVX}},
+        {FractalGenerator::Gradient,   {Gradient,   GradientSSE,   GradientAVX}},
     };
 
-    return gen_functions[g];
+    return gen_functions.at(g);
 }
 
 

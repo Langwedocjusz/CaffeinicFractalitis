@@ -14,7 +14,7 @@ endif()
 project(CaffeinicFractalitis)
 
 #Specify CPP standard
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 #Build current project as an executable
@@ -41,6 +41,8 @@ endif()
 target_include_directories(${PROJECT_NAME} PUBLIC vendor/stb_image)
 #Add aligned allocator
 target_include_directories(${PROJECT_NAME} PUBLIC vendor/aligned_alloc)
+#Add nlohmann json
+target_include_directories(${PROJECT_NAME} PUBLIC vendor/json/single_include)
 
 #Directory structure for IDEs like Visual Studio
 source_group(src REGULAR_EXPRESSION "src/*")

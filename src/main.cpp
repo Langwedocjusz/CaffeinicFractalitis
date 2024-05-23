@@ -8,15 +8,6 @@
 
 int main(int argc, char* argv[])
 {
-    constexpr size_t width  = 1024;
-	constexpr size_t height = 1024;
-    constexpr size_t num_frames = 100;
-    constexpr float center_x = -0.745f;
-    constexpr float center_y = 0.1f;
-
-    Generator gen_choice = Generator::SmoothIter;
-    const auto gen_function = GetGeneratingFunction(gen_choice);
-
     ProgramArgs args = ParseInput(argc, argv);
     
     if (args.ExitMessage.has_value())
@@ -25,15 +16,18 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    AlignedVector<float> data(width*height);
+    AlignedVector<float> data(args.Width*args.Height);
+
+    auto gen_function = GetGeneratingFunction(args.Generator);
+    auto coloring_fn = Image::GetColoringFunction(args.Coloring);
 
     SimdType simd_type = args.Simd.has_value()
                        ? args.Simd.value()
                        : SimdType::SSE;
 
-    float half_ext = 1.0f;
+    float half_ext = 0.5f * args.InitialWidth;
 
-    for (auto i=0; i<num_frames; i++)
+    for (auto i=0; i<args.NumFrames; i++)
     {
         const GenData::ExecutionPolicy exec_policy{
             .Simd = simd_type,
@@ -41,18 +35,18 @@ int main(int argc, char* argv[])
         };
 
         const GenData::FrameParams params{
-            .MinX   = center_x - half_ext,
-            .MaxX   = center_x + half_ext,
-            .MinY   = center_y - half_ext,
-            .MaxY   = center_y + half_ext,
-            .Width  = width, 
-            .Height = height
+            .MinX   = args.CenterX - half_ext,
+            .MaxX   = args.CenterX + half_ext,
+            .MinY   = args.CenterY - half_ext,
+            .MaxY   = args.CenterY + half_ext,
+            .Width  = args.Width, 
+            .Height = args.Height
         };
 
         const Image::ImageInfo info{
-            .Width = width,
-            .Height = height,
-            .Name = std::to_string(i) + ".png"
+            .Width  = args.Width,
+            .Height = args.Height,
+            .Name   = std::to_string(i) + ".png"
         };
 
         {
@@ -64,7 +58,7 @@ int main(int argc, char* argv[])
         {
             Timer we("Coloring and saving the image");
 
-            Image::ColorAndSave(data, Image::IterToColorIQ, info, args.NumJobs);
+            Image::ColorAndSave(data, coloring_fn, info, args.NumJobs);
         }
  
         half_ext *= 0.9f;

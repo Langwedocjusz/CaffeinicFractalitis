@@ -6,7 +6,8 @@
 
 #include <functional>
 
-enum class Generator{
+enum class FractalGenerator{
+    None,
     SmoothIter, 
     Gradient
 };
@@ -21,4 +22,4 @@ struct GenFunction{
     AVXFunction AVX;
 };
 
-GenFunction GetGeneratingFunction(Generator g);
+GenFunction GetGeneratingFunction(FractalGenerator g);

@@ -6,8 +6,21 @@
 
 #include <cmath>
 #include <array>
+#include <map>
 
-static Image::Pixelf hsv_to_rgb(float h, float s, float v);
+Image::ColoringFn Image::GetColoringFunction(ImageColoring c)
+{
+	auto ReturnBlack = [](float){return Pixel{0,0,0};};
+
+	const std::map<ImageColoring, ColoringFn> coloring_functions{
+		{ImageColoring::None,            ReturnBlack},
+		{ImageColoring::IterToColorIQ,   IterToColorIQ},
+		{ImageColoring::NormedGrayscale, NormedGrayscale},
+		{ImageColoring::ColorHSV,        ColorHSV}
+	};
+
+	return coloring_functions.at(c);
+}
 
 void Image::SaveImage(std::vector<Pixel>& image, ImageInfo info)
 {
@@ -82,6 +95,8 @@ Image::Pixel Image::IterToColorIQ(float iter_count)
 
 	return Image::Pixel{r,g,b};
 }
+
+static Image::Pixelf hsv_to_rgb(float h, float s, float v);
 
 Image::Pixel Image::ColorHSV(float value)
 {
