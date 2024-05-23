@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Float.h"
+#include "SimdFloat.h"
 
 template<SimdType T>
 struct Complex{
-    typedef Float<T>::ValueType ValueType;
+    typedef SimdFloat<T>::ValueType ValueType;
 
-    Float<T> Re;
-    Float<T> Im;
+    SimdFloat<T> Re;
+    SimdFloat<T> Im;
 
-    Complex(Float<T> re, Float<T> im)
+    Complex(SimdFloat<T> re, SimdFloat<T> im)
         : Re(re), Im(im)
     {}
 
@@ -51,23 +51,23 @@ struct Complex{
         };
     }
 
-    void operator/=(Float<T> v)
+    void operator/=(SimdFloat<T> v)
     {
         Re = Re/v;
         Im = Im/v;
     }
 
-    static Float<T> Len2(Complex z)
+    static SimdFloat<T> Len2(Complex z)
     {
         return z.Re * z.Re + z.Im * z.Im;
     }
 
-    static Float<T> Len(Complex z)
+    static SimdFloat<T> Len(Complex z)
     {
-        return Float<T>::sqrt(Len2(z));
+        return SimdFloat<T>::sqrt(Len2(z));
     }
 
-    static Float<T> Dot(Complex x, Complex y)
+    static SimdFloat<T> Dot(Complex x, Complex y)
     {
         return x.Re * y.Re + x.Im * y.Im;
     }
@@ -75,8 +75,8 @@ struct Complex{
     static Complex Blend(Complex x, Complex y, ValueType condition)
     {
         return Complex{
-            Float<T>::blend(x.Re, y.Re, condition),
-            Float<T>::blend(x.Im, y.Im, condition),
+            SimdFloat<T>::blend(x.Re, y.Re, condition),
+            SimdFloat<T>::blend(x.Im, y.Im, condition),
         };
     }
 };
@@ -88,7 +88,7 @@ Complex<T> operator*(float x, const Complex<T>& z)
 }
 
 template<SimdType T>
-Complex<T> operator/(const Complex<T>& z, Float<T> x)
+Complex<T> operator/(const Complex<T>& z, SimdFloat<T> x)
 {
     return Complex{z.Re / x, z.Im / x};
 }

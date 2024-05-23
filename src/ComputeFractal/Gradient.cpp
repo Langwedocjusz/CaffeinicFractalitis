@@ -42,7 +42,7 @@ float ComputeFractal::Gradient(float x, float y)
     complex u = z/dz;
     u /= complex::Len(u);
 
-    const float dot = complex::Dot(u, l).Value + light_height;
+    const float dot = (complex::Dot(u, l) + light_height).Value;
     
     return std::max(0.0f, std::min(dot/(1.0f + light_height), 1.0f));
 }
@@ -94,7 +94,7 @@ void ComputeFractal::GradientSSE(float* mem_address, __m128 x, __m128 y)
     complex u = final_z/final_dz;
     u /= complex::Len(u);
 
-    const __m128 dot = complex::Dot(u, l).Value + light_height;
+    const __m128 dot = (complex::Dot(u, l) + light_height).Value;
 
     __m128 res = _mm_max_ps(zero, _mm_min_ps(_mm_div_ps(dot, _mm_add_ps(one, lheight)), one));
 
@@ -150,7 +150,7 @@ void ComputeFractal::GradientAVX(float* mem_address, __m256 x, __m256 y)
     complex u = final_z/final_dz;
     u /= complex::Len(u);
 
-    const __m256 dot = complex::Dot(u, l).Value + light_height;
+    const __m256 dot = (complex::Dot(u, l) + light_height).Value;
 
     __m256 res = _mm256_max_ps(zero, _mm256_min_ps(_mm256_div_ps(dot, _mm256_add_ps(one, lheight)), one));
 

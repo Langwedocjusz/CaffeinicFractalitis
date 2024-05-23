@@ -31,7 +31,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC src src/ComputeFractal)
 
 #SSE and AVX compile flags
 if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE4.1")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")
