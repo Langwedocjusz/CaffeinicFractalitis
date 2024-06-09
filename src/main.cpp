@@ -9,7 +9,7 @@
 int main(int argc, char* argv[])
 {
     ProgramArgs args = ParseInput(argc, argv);
-    
+
     if (args.ExitMessage.has_value())
     {
         std::cerr << args.ExitMessage.value() << '\n';
@@ -26,6 +26,7 @@ int main(int argc, char* argv[])
                        : SimdType::SSE;
 
     float half_ext = 0.5f * args.InitialWidth;
+    float aspect_ratio = static_cast<float>(args.Height)/static_cast<float>(args.Width);
 
     for (auto i=0; i<args.NumFrames; i++)
     {
@@ -37,9 +38,9 @@ int main(int argc, char* argv[])
         const GenData::FrameParams params{
             .MinX   = args.CenterX - half_ext,
             .MaxX   = args.CenterX + half_ext,
-            .MinY   = args.CenterY - half_ext,
-            .MaxY   = args.CenterY + half_ext,
-            .Width  = args.Width, 
+            .MinY   = args.CenterY - aspect_ratio*half_ext,
+            .MaxY   = args.CenterY + aspect_ratio*half_ext,
+            .Width  = args.Width,
             .Height = args.Height
         };
 
@@ -51,7 +52,7 @@ int main(int argc, char* argv[])
 
         {
             Timer we("Generating the fractal");
-            
+
             GenData::GenerateFractal(data, gen_function, params, exec_policy);
         }
 
@@ -60,7 +61,7 @@ int main(int argc, char* argv[])
 
             Image::ColorAndSave(data, coloring_fn, info, args.NumJobs);
         }
- 
+
         half_ext *= args.ZoomSpeed;
     }
 }

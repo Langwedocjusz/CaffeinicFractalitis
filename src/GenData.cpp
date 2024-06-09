@@ -4,8 +4,8 @@ namespace GenData {
 
     typedef std::function<float(size_t)> CoordFunction;
 
-    static void InnerLoop(AlignedVector<float>& data, GenFunction f, 
-        CoordFunction get_x, CoordFunction get_y, 
+    static void InnerLoop(AlignedVector<float>& data, GenFunction f,
+        CoordFunction get_x, CoordFunction get_y,
         size_t start, size_t end,
         SimdType simd);
 
@@ -15,16 +15,16 @@ namespace GenData {
         {
             const float inv_width  = 1.0f/static_cast<float>(p.Width);
             const float inv_height = 1.0f/static_cast<float>(p.Height);
-        
+
             const float extents_x = p.MaxX - p.MinX;
             const float extents_y = p.MaxY - p.MinY;
-        	
+
             auto getX = [&](size_t id)
         	{
         		const float idx = static_cast<float>(id % p.Width);
         		return extents_x * idx * inv_width + p.MinX;
         	};
-        
+
         	auto getY = [&](size_t id)
         	{
         		const float idy = static_cast<float>(p.Height - id / p.Width);
@@ -65,30 +65,53 @@ namespace GenData {
         }
     }
 
-    //To-do: handle cases when start/end are not divisible by 4/8
-    static void InnerLoop(AlignedVector<float>& data, GenFunction f, 
-            CoordFunction get_x, CoordFunction get_y, 
+
+    static void InnerLoop(AlignedVector<float>& data, GenFunction f,
+            CoordFunction get_x, CoordFunction get_y,
             size_t start, size_t end,
             SimdType simd)
     {
         using enum SimdType;
 
+        auto IterateScalar = [&](size_t scalar_start, size_t scalar_end)
+        {
+            for (size_t i = scalar_start; i < scalar_end; i++)
+            {
+                const float x = get_x(i);
+                const float y = get_y(i);
+                data[i] = f.Scalar(x, y);
+            }
+        };
+
+        //Utilities to find multiple of alignment that is closest to given value
+        //from above and below:
+
+        auto FindSmallerMultiple = [](size_t value, size_t alignment){
+            const size_t mod = value % alignment;
+            return value - mod;
+        };
+
+        auto FindLargerMultiple = [](size_t value, size_t alignment)
+        {
+            const size_t mod = value % alignment;
+            return value - mod + alignment;
+        };
+
         switch(simd)
         {
             case Scalar:
             {
-                for (size_t i = start; i < end; i++)
-                {
-                    const float x = get_x(i); 
-                    const float y = get_y(i);
-                    data[i] = f.Scalar(x, y);
-                }
-
+                IterateScalar(start, end);
                 break;
              }
             case SSE:
             {
-                 for (size_t i = start; i < end; i += 4)
+                size_t vector_start = FindLargerMultiple(start, 4);
+                size_t vector_end = FindSmallerMultiple(end, 4);
+
+                IterateScalar(start, vector_start);
+
+                for (size_t i = vector_start; i < vector_end; i += 4)
                 {
                     __m128 x = _mm_set_ps(get_x(i + 3), get_x(i + 2), get_x(i + 1), get_x(i));
                     __m128 y = _mm_set_ps(get_y(i + 3), get_y(i + 2), get_y(i + 1), get_y(i));
@@ -97,10 +120,17 @@ namespace GenData {
                     f.SSE(mem_address, x, y);
                 }
 
+                IterateScalar(vector_end, end);
+
                 break;
             }
             case AVX:
             {
+                size_t vector_start = FindLargerMultiple(start, 8);
+                size_t vector_end = FindSmallerMultiple(end, 8);
+
+                IterateScalar(start, vector_start);
+
                 for (size_t i = start; i < end; i += 8)
                 {
                     __m256 x = _mm256_set_ps(
@@ -116,6 +146,8 @@ namespace GenData {
                     float* mem_address = &data[i];
                     f.AVX(mem_address, x, y);
                 }
+
+                IterateScalar(vector_end, end);
 
                 break;
             }

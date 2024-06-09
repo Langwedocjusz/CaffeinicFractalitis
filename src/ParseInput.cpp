@@ -131,9 +131,15 @@ ProgramArgs ParseInput(int argc, char* argv[])
         return res;
     }
 
-    if (args.size() != 1)
+    if (args.size() == 0)
     {
         res.ExitMessage = "Missing parameter: path to json file";
+        return res;
+    }
+
+    else if (args.size() > 1)
+    {
+        res.ExitMessage = "Only accepted arguments are a path to json file and execution flags";
         return res;
     }
 
@@ -185,7 +191,7 @@ ProgramArgs ParseInput(int argc, char* argv[])
 
         catch(const json::exception& e)
         {
-            res.ExitMessage = e.what();
+            res.ExitMessage = "Unable to parse json file:\n" + std::string(e.what());
             return res;
         }
     }
