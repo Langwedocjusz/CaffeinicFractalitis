@@ -43,22 +43,22 @@ struct SimdFloat<SimdType::Scalar>{
     }
 };
 
-static SimdFloat<SimdType::Scalar> operator+(float x, const SimdFloat<SimdType::Scalar>& X)
+inline SimdFloat<SimdType::Scalar> operator+(float x, const SimdFloat<SimdType::Scalar>& X)
 {
     return SimdFloat<SimdType::Scalar>{x + X.Value};
 }
 
-static SimdFloat<SimdType::Scalar> operator*(const SimdFloat<SimdType::Scalar>& lhs, const SimdFloat<SimdType::Scalar>& rhs)
+inline SimdFloat<SimdType::Scalar> operator*(const SimdFloat<SimdType::Scalar>& lhs, const SimdFloat<SimdType::Scalar>& rhs)
 {
     return SimdFloat<SimdType::Scalar>{lhs.Value * rhs.Value};
 }
 
-static SimdFloat<SimdType::Scalar> operator*(float x, const SimdFloat<SimdType::Scalar>& X)
+inline SimdFloat<SimdType::Scalar> operator*(float x, const SimdFloat<SimdType::Scalar>& X)
 {
     return SimdFloat<SimdType::Scalar>{x * X.Value};
 }
 
-static SimdFloat<SimdType::Scalar> operator+(const SimdFloat<SimdType::Scalar>& X, float x)
+inline SimdFloat<SimdType::Scalar> operator+(const SimdFloat<SimdType::Scalar>& X, float x)
 {
     return SimdFloat<SimdType::Scalar>{x + X.Value};
 }
@@ -111,28 +111,28 @@ struct SimdFloat<SimdType::SSE>{
     }
 };
 
-static SimdFloat<SimdType::SSE> operator*(const SimdFloat<SimdType::SSE>& lhs, const SimdFloat<SimdType::SSE>& rhs)
+inline SimdFloat<SimdType::SSE> operator*(const SimdFloat<SimdType::SSE>& lhs, const SimdFloat<SimdType::SSE>& rhs)
 {
     return SimdFloat<SimdType::SSE>{
         _mm_mul_ps(lhs.Value, rhs.Value)
     };
 }
 
-static SimdFloat<SimdType::SSE> operator*(float x, const SimdFloat<SimdType::SSE>& X)
+inline SimdFloat<SimdType::SSE> operator*(float x, const SimdFloat<SimdType::SSE>& X)
 {
     return SimdFloat<SimdType::SSE>{
         _mm_mul_ps(X.Value, _mm_set1_ps(x))
     };
 }
 
-static SimdFloat<SimdType::SSE> operator+(float x, const SimdFloat<SimdType::SSE>& X)
+inline SimdFloat<SimdType::SSE> operator+(float x, const SimdFloat<SimdType::SSE>& X)
 {
     return SimdFloat<SimdType::SSE>{
         _mm_add_ps(X.Value, _mm_set1_ps(x))
     };
 }
 
-static SimdFloat<SimdType::SSE> operator+(const SimdFloat<SimdType::SSE>& X, float x)
+inline SimdFloat<SimdType::SSE> operator+(const SimdFloat<SimdType::SSE>& X, float x)
 {
     return SimdFloat<SimdType::SSE>{
         _mm_add_ps(X.Value, _mm_set1_ps(x))
@@ -187,28 +187,28 @@ struct SimdFloat<SimdType::AVX>{
     }
 };
 
-static SimdFloat<SimdType::AVX> operator*(const SimdFloat<SimdType::AVX>& lhs, const SimdFloat<SimdType::AVX>& rhs)
+inline SimdFloat<SimdType::AVX> operator*(const SimdFloat<SimdType::AVX>& lhs, const SimdFloat<SimdType::AVX>& rhs)
 {
     return SimdFloat<SimdType::AVX>{
         _mm256_mul_ps(lhs.Value, rhs.Value)
     };
 }
 
-static SimdFloat<SimdType::AVX> operator*(float x, const SimdFloat<SimdType::AVX>& X)
+inline SimdFloat<SimdType::AVX> operator*(float x, const SimdFloat<SimdType::AVX>& X)
 {
     return SimdFloat<SimdType::AVX>{
         _mm256_mul_ps(X.Value, _mm256_set1_ps(x))
     };
 }
 
-static SimdFloat<SimdType::AVX> operator+(float x, const SimdFloat<SimdType::AVX>& X)
+inline SimdFloat<SimdType::AVX> operator+(float x, const SimdFloat<SimdType::AVX>& X)
 {
     return SimdFloat<SimdType::AVX>{
         _mm256_add_ps(X.Value, _mm256_set1_ps(x))
     };
 }
 
-static SimdFloat<SimdType::AVX> operator+(const SimdFloat<SimdType::AVX>& X, float x)
+inline SimdFloat<SimdType::AVX> operator+(const SimdFloat<SimdType::AVX>& X, float x)
 {
     return SimdFloat<SimdType::AVX>{
         _mm256_add_ps(X.Value, _mm256_set1_ps(x))

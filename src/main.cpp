@@ -25,10 +25,11 @@ int main(int argc, char* argv[])
                        ? args.Simd.value()
                        : SimdType::SSE;
 
-    float half_ext = 0.5f * args.InitialWidth;
-    float aspect_ratio = static_cast<float>(args.Height)/static_cast<float>(args.Width);
+    const float aspect_ratio = static_cast<float>(args.Height)/static_cast<float>(args.Width);
 
-    for (auto i=0; i<args.NumFrames; i++)
+    float half_ext = 0.5f * args.InitialWidth;
+
+    for (uint32_t i=0; i<args.NumFrames; i++)
     {
         const GenData::ExecutionPolicy exec_policy{
             .Simd = simd_type,

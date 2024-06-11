@@ -13,7 +13,7 @@ using json = nlohmann::json;
 static bool IsUint(std::string_view token);
 static bool IsZero(std::string_view token);
 
-static auto GetJobs(std::vector<std::string_view>& args) 
+static auto GetJobs(std::vector<std::string_view>& args)
     -> std::expected<std::optional<uint32_t>, std::string>
 {
     std::optional<uint32_t> ret = std::nullopt;
@@ -88,9 +88,9 @@ static auto GetSimd(std::vector<std::string_view>& args)
             erase = true;
         }
 
-        if(erase) 
+        if(erase)
             args.erase(it);
-        else 
+        else
             ++it;
     }
 
@@ -101,14 +101,14 @@ ProgramArgs ParseInput(int argc, char* argv[])
 {
     ProgramArgs res;
 
-    constexpr uint32_t max_supported_args = 4;
+    constexpr int max_supported_args = 4;
 
     if (argc > max_supported_args + 1)
     {
         res.ExitMessage = "Too many arguments provided.";
         return res;
     }
-        
+
     std::vector<std::string_view> args(argv+1, argv+argc);
 
     const auto jobs = GetJobs(args);
@@ -120,7 +120,7 @@ ProgramArgs ParseInput(int argc, char* argv[])
         res.ExitMessage = jobs.error();
         return res;
     }
-        
+
     const auto simd = GetSimd(args);
 
     if (simd.has_value())
@@ -211,7 +211,7 @@ static bool IsDigit(char ch)
 }
 
 static bool IsUint(std::string_view token)
-{        
+{
     bool res = true;
 
     for (const char ch : token)

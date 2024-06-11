@@ -37,6 +37,13 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")
 endif()
 
+#Enable more warnings
+if(MSVC)
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+else()
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
+
 add_subdirectory(vendor/stb_image)
 add_subdirectory(vendor/aligned_alloc)
 add_subdirectory(vendor/json)
