@@ -86,7 +86,7 @@ Image::Pixel Image::IterToColorIQ(float iter_count)
 	auto processColor = [=](uint32_t id){
 		const float x = 0.5f + 0.5f*std::cos(freq*iter_count + phase[id]);
 
-		return static_cast<uint32_t>(255.0f * x);
+		return static_cast<uint8_t>(255.0f * x);
 	};
 
 	const uint8_t r = processColor(0);
@@ -106,8 +106,8 @@ Image::Pixel Image::ColorHSV(float value)
 		return lorentz * lorentz * lorentz;
 	};
 
-	const float h = 3.6 * std::fmod(value, 100.0f);
-	const float s = 0.5;
+	const float h = 3.6f * std::fmod(value, 100.0f);
+	const float s = 0.5f;
 	const float v = normalize(value);
 
 	const Image::Pixelf rgb = hsv_to_rgb(h, s, v);
