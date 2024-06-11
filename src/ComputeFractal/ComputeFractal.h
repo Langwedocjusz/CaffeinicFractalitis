@@ -4,17 +4,15 @@
 #include <smmintrin.h>
 #include <immintrin.h>
 
-#include <functional>
-
 enum class FractalGenerator{
     None,
-    SmoothIter, 
+    SmoothIter,
     Gradient
 };
 
-typedef std::function<float(float, float)> ScalarFunction;
-typedef std::function<void(float*, __m128, __m128)> SSEFunction;
-typedef std::function<void(float*, __m256, __m256)> AVXFunction;
+typedef float (*ScalarFunction)(float, float);
+typedef void (*SSEFunction)(float*, __m128, __m128);
+typedef void (*AVXFunction)(float*, __m256, __m256);
 
 struct GenFunction{
     ScalarFunction Scalar;

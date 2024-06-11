@@ -1,5 +1,7 @@
 #include "GenData.h"
 
+#include <functional>
+
 namespace GenData {
 
     typedef std::function<float(size_t)> CoordFunction;
