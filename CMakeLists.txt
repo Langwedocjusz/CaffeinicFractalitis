@@ -37,15 +37,17 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")
 endif()
 
-#Add stb image
-target_include_directories(${PROJECT_NAME} PUBLIC vendor/stb_image)
-#Add aligned allocator
-target_include_directories(${PROJECT_NAME} PUBLIC vendor/aligned_alloc)
-#Add nlohmann json
-target_include_directories(${PROJECT_NAME} PUBLIC vendor/json/single_include)
+add_subdirectory(vendor/stb_image)
+add_subdirectory(vendor/aligned_alloc)
+add_subdirectory(vendor/json)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC stb_image)
+target_link_libraries(${PROJECT_NAME} PUBLIC aligned_alloc)
+target_link_libraries(${PROJECT_NAME} PUBLIC json)
 
 #Directory structure for IDEs like Visual Studio
 source_group(src REGULAR_EXPRESSION "src/*")
+source_group(src/ComputeFractal REGULAR_EXPRESSION "src/ComputeFractal/*")
 
 #Set current project as Visual Studio start project
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
